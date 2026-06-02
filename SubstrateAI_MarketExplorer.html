@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Substrate AI — Market Scenario Explorer | Alchetex Ltd</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0C2340;
+  --navy-mid: #1C3557;
+  --teal: #0D6E6E;
+  --teal-light: #0A9E9E;
+  --teal-pale: #E0F4F4;
+  --amber: #D4891A;
+  --amber-pale: #FEF3DC;
+  --red: #C0392B;
+  --red-pale: #FDECEB;
+  --green: #1E7B4B;
+  --green-pale: #E4F5ED;
+  --grey-50: #F6F8FA;
+  --grey-100: #EDF0F3;
+  --grey-200: #D5DAE2;
+  --grey-400: #8E97A6;
+  --grey-600: #4E5A6B;
+  --grey-800: #2C3442;
+  --white: #FFFFFF;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --radius: 8px;
+  --radius-lg: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--grey-50); color: var(--grey-800); font-size: 14px; line-height: 1.6; }
+
+/* ── NAV ── */
+nav { position: sticky; top: 0; z-index: 100; background: var(--navy); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 0; padding: 0 28px; height: 52px; }
+.nav-logo { font-size: 13px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; margin-right: 32px; display: flex; align-items: center; gap: 8px; }
+.nav-logo span { width: 22px; height: 22px; background: var(--teal-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+.nav-tabs { display: flex; gap: 4px; flex: 1; }
+.nav-tab { font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: all 0.15s; border: none; background: transparent; }
+.nav-tab:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.06); }
+.nav-tab.active { color: var(--white); background: rgba(255,255,255,0.1); font-weight: 500; }
+.nav-right { font-size: 11px; color: rgba(255,255,255,0.35); font-family: var(--mono); }
+
+/* ── LAYOUT ── */
+.page { display: none; }
+.page.active { display: block; }
+.main-grid { display: grid; grid-template-columns: 300px 1fr; gap: 0; min-height: calc(100vh - 52px); }
+
+/* ── LEVER PANEL ── */
+.lever-panel { background: var(--white); border-right: 1px solid var(--grey-200); position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; }
+.lever-panel-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--grey-100); }
+.lever-panel-header h2 { font-size: 11px; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.08em; }
+.lever-panel-header p { font-size: 12px; color: var(--grey-400); margin-top: 3px; }
+.scenario-strip { padding: 12px 20px; border-bottom: 1px solid var(--grey-100); display: flex; flex-wrap: wrap; gap: 6px; }
+.scen-btn { font-size: 11px; padding: 4px 11px; border-radius: 20px; border: 1px solid var(--grey-200); background: var(--white); cursor: pointer; color: var(--grey-600); transition: all 0.15s; font-family: var(--font); }
+.scen-btn:hover { border-color: var(--teal); color: var(--teal); }
+.scen-btn.active { background: var(--navy); border-color: var(--navy); color: var(--white); }
+
+.lever-group { border-bottom: 1px solid var(--grey-100); }
+.group-header { font-size: 10px; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 20px 4px; }
+.lever-row { padding: 8px 20px 10px; }
+.lever-label { font-size: 12px; font-weight: 500; color: var(--grey-800); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+.lever-badge { font-size: 10px; font-weight: 500; padding: 1px 7px; border-radius: 20px; }
+.lbv-0 { background: var(--green-pale); color: var(--green); }
+.lbv-1 { background: var(--teal-pale); color: var(--teal); }
+.lbv-2 { background: var(--amber-pale); color: var(--amber); }
+.lbv-3 { background: var(--red-pale); color: var(--red); }
+.lever-track { display: flex; gap: 3px; }
+.lbtn { flex: 1; height: 26px; border-radius: 4px; border: 1px solid var(--grey-200); background: var(--grey-50); cursor: pointer; font-size: 10px; font-weight: 500; color: var(--grey-400); transition: all 0.12s; font-family: var(--font); }
+.lbtn:hover { border-color: var(--grey-400); color: var(--grey-800); }
+.lbtn.av0 { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+.lbtn.av1 { background: var(--teal-pale); border-color: var(--teal); color: var(--teal); }
+.lbtn.av2 { background: var(--amber-pale); border-color: var(--amber); color: var(--amber); }
+.lbtn.av3 { background: var(--red-pale); border-color: var(--red); color: var(--red); }
+
+.url-strip { padding: 12px 20px; border-top: 1px solid var(--grey-100); display: flex; align-items: center; gap: 8px; position: sticky; bottom: 0; background: var(--white); }
+.url-code { font-size: 10px; font-family: var(--mono); color: var(--grey-600); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-btn { font-size: 10px; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--grey-200); background: var(--white); cursor: pointer; color: var(--grey-600); transition: all 0.15s; font-family: var(--font); }
+.copy-btn:hover { background: var(--grey-50); }
+
+/* ── CONTENT AREA ── */
+.content { padding: 24px; overflow-y: auto; }
+.section { margin-bottom: 28px; }
+.section-title { font-size: 11px; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+
+/* ── METRIC CARDS ── */
+.metric-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.mc { background: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-lg); padding: 16px 18px; }
+.mc-label { font-size: 11px; color: var(--grey-400); margin-bottom: 6px; }
+.mc-val { font-size: 26px; font-weight: 600; color: var(--navy); line-height: 1; }
+.mc-sub { font-size: 11px; margin-top: 5px; }
+.mc-sub.pos { color: var(--green); } .mc-sub.neg { color: var(--red); } .mc-sub.neu { color: var(--grey-400); }
+.mc-accent { border-left: 3px solid var(--teal-light); }
+
+/* ── CHARTS ── */
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-card { background: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-lg); padding: 18px; }
+.chart-card.wide { grid-column: span 2; }
+.chart-title { font-size: 12px; font-weight: 600; color: var(--grey-800); margin-bottom: 4px; }
+.chart-sub { font-size: 11px; color: var(--grey-400); margin-bottom: 14px; }
+.chart-wrap { position: relative; }
+
+/* ── BAR LIST ── */
+.bar-list { display: flex; flex-direction: column; gap: 8px; }
+.bar-item { display: flex; align-items: center; gap: 10px; }
+.bar-name { font-size: 11px; color: var(--grey-600); width: 160px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; height: 16px; background: var(--grey-100); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.45s cubic-bezier(0.4,0,0.2,1); }
+.bar-val { font-size: 11px; font-weight: 600; color: var(--grey-800); width: 48px; text-align: right; flex-shrink: 0; }
+
+/* ── 2×2 MATRIX ── */
+.matrix-wrap { background: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-lg); padding: 18px; }
+.matrix { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; background: var(--grey-200); border-radius: 6px; overflow: hidden; height: 320px; }
+.quadrant { background: var(--white); padding: 14px; display: flex; flex-direction: column; gap: 6px; position: relative; }
+.q-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--grey-400); }
+.q-items { display: flex; flex-direction: column; gap: 4px; flex: 1; justify-content: center; }
+.q-item { font-size: 10px; color: var(--grey-600); padding: 3px 8px; border-radius: 3px; background: var(--grey-50); border: 1px solid var(--grey-100); }
+.q-hero { background: var(--navy); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 16px; }
+.q-hero .q-label { color: rgba(255,255,255,0.5); }
+.q-hero .q-name { font-size: 14px; font-weight: 700; color: var(--white); margin: 6px 0 4px; }
+.q-hero .q-tagline { font-size: 10px; color: rgba(255,255,255,0.55); line-height: 1.4; }
+.axis-x { text-align: center; font-size: 10px; color: var(--grey-400); font-weight: 500; margin-top: 6px; }
+.axis-y { writing-mode: vertical-lr; transform: rotate(180deg); font-size: 10px; color: var(--grey-400); font-weight: 500; text-align: center; }
+.matrix-outer { display: flex; gap: 8px; align-items: center; }
+
+/* ── MOAT TABLE ── */
+.moat-table { width: 100%; border-collapse: collapse; }
+.moat-table th { font-size: 10px; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 12px; border-bottom: 1px solid var(--grey-200); text-align: left; background: var(--grey-50); }
+.moat-table td { font-size: 12px; color: var(--grey-700); padding: 10px 12px; border-bottom: 1px solid var(--grey-100); vertical-align: top; }
+.moat-table tr:last-child td { border-bottom: none; }
+.moat-table tr:hover td { background: var(--grey-50); }
+.competitor-name { font-weight: 600; color: var(--grey-800); font-size: 12px; }
+.threat-bar { display: flex; align-items: center; gap: 6px; }
+.threat-dots { display: flex; gap: 2px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.filled { background: var(--red); }
+.dot.empty { background: var(--grey-200); }
+
+/* ── SOURCE BADGE ── */
+.source-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--grey-400); background: var(--grey-100); border-radius: 3px; padding: 2px 7px; }
+
+/* ── SOM CALC PAGE ── */
+.calc-grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+.input-card { background: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-lg); padding: 18px; }
+.input-card h3 { font-size: 12px; font-weight: 600; color: var(--grey-800); margin-bottom: 14px; }
+.input-row { margin-bottom: 12px; }
+.input-row label { font-size: 11px; color: var(--grey-600); display: block; margin-bottom: 4px; }
+.input-row input[type=range] { width: 100%; }
+.input-readout { display: flex; justify-content: space-between; font-size: 11px; color: var(--grey-400); margin-top: 2px; }
+.input-readout span { font-weight: 600; color: var(--navy); }
+.scenario-table { background: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-lg); overflow: hidden; }
+.st-row { display: grid; grid-template-columns: 1fr 80px 80px 80px 80px; padding: 10px 16px; border-bottom: 1px solid var(--grey-100); align-items: center; font-size: 12px; }
+.st-row:last-child { border-bottom: none; }
+.st-header { background: var(--grey-50); font-size: 10px; font-weight: 600; color: var(--grey-400); text-transform: uppercase; }
+.st-name { font-weight: 500; color: var(--grey-800); }
+.st-primary { background: var(--teal-pale); border-left: 3px solid var(--teal); }
+.st-primary .st-name { color: var(--teal); font-weight: 600; }
+.st-val { font-family: var(--mono); font-size: 11px; color: var(--grey-600); text-align: right; }
+.st-val.hi { color: var(--green); font-weight: 600; }
+.st-tag { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: 500; }
+.tag-uk { background: var(--navy); color: var(--white); }
+.tag-eu { background: var(--teal-pale); color: var(--teal); }
+
+/* ── EVIDENCE PAGE ── */
+.evidence-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.ev-card { background: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-lg); padding: 16px; }
+.ev-tier { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.ev-tier.t1 { color: var(--teal); } .ev-tier.t2 { color: var(--amber); } .ev-tier.t3 { color: var(--grey-400); }
+.ev-card h3 { font-size: 12px; font-weight: 600; color: var(--grey-800); margin-bottom: 6px; line-height: 1.4; }
+.ev-card p { font-size: 11px; color: var(--grey-600); line-height: 1.5; }
+.ev-figure { font-size: 16px; font-weight: 700; color: var(--navy); margin: 8px 0 4px; }
+
+/* ── RESPONSIVE HELPERS ── */
+.highlight-box { background: var(--navy); border-radius: var(--radius-lg); padding: 16px 20px; color: var(--white); margin-bottom: 16px; }
+.highlight-box h3 { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.highlight-box p { font-size: 13px; color: var(--white); line-height: 1.5; }
+.highlight-box p strong { color: var(--teal-light); }
+
+/* ── TOOLTIP ── */
+.tooltip { position: relative; cursor: help; }
+.tooltip:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--grey-800); color: var(--white); font-size: 11px; padding: 6px 10px; border-radius: 4px; white-space: nowrap; pointer-events: none; z-index: 999; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><span>S</span> Substrate AI · Alchetex</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('scenario')">Scenario Explorer</button>
+    <button class="nav-tab" onclick="showPage('market')">Market Analysis</button>
+    <button class="nav-tab" onclick="showPage('competitor')">Competitor Landscape</button>
+    <button class="nav-tab" onclick="showPage('som')">SOM Calculator</button>
+    <button class="nav-tab" onclick="showPage('evidence')">Evidence Base</button>
+  </div>
+  <div class="nav-right">Competition 2453 · June 2026</div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 1 — SCENARIO EXPLORER
+════════════════════════════════════════════════════ -->
+<div id="page-scenario" class="page active">
+<div class="main-grid">
+
+  <!-- LEVER PANEL -->
+  <div class="lever-panel">
+    <div class="lever-panel-header">
+      <h2>Scenario Levers</h2>
+      <p>Adjust to model market outcomes</p>
+    </div>
+    <div class="scenario-strip">
+      <button class="scen-btn" onclick="loadScenario('base')">Base case</button>
+      <button class="scen-btn" onclick="loadScenario('bull')">Bull — EV surge</button>
+      <button class="scen-btn" onclick="loadScenario('bear')">Bear — slow roll</button>
+      <button class="scen-btn" onclick="loadScenario('recall')">Recall catalyst</button>
+      <button class="scen-btn active" onclick="loadScenario('custom')">Custom</button>
+    </div>
+
+    <!-- LEVER GROUPS -->
+    <div class="lever-group">
+      <div class="group-header">EV market demand</div>
+      <div class="lever-row" id="lr-ev_adopt"></div>
+      <div class="lever-row" id="lr-uk_ghw"></div>
+      <div class="lever-row" id="lr-eu_ghw"></div>
+    </div>
+    <div class="lever-group">
+      <div class="group-header">Contamination urgency</div>
+      <div class="lever-row" id="lr-recall_risk"></div>
+      <div class="lever-row" id="lr-oem_mandate"></div>
+    </div>
+    <div class="lever-group">
+      <div class="group-header">Substrate AI platform</div>
+      <div class="lever-row" id="lr-trl"></div>
+      <div class="lever-row" id="lr-data_vol"></div>
+      <div class="lever-row" id="lr-validation"></div>
+    </div>
+    <div class="lever-group">
+      <div class="group-header">Competition & moat</div>
+      <div class="lever-row" id="lr-comp_threat"></div>
+      <div class="lever-row" id="lr-ip_moat"></div>
+    </div>
+    <div class="lever-group">
+      <div class="group-header">Policy & funding</div>
+      <div class="lever-row" id="lr-iuk_funding"></div>
+      <div class="lever-row" id="lr-rou_cliff"></div>
+    </div>
+
+    <div class="url-strip">
+      <div class="url-code" id="urlCode">?levers=111111111111</div>
+      <button class="copy-btn" onclick="copyUrl()">copy link</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <!-- HEADLINE ALERT -->
+    <div class="highlight-box">
+      <h3>Key finding — UK Gigafactory Commission, Jan 2026 · Section 4.2</h3>
+      <p>"The UK currently has little domestic capacity to produce these components at scale. There is <strong>no significant UK manufacturing of separators</strong>." — 5th independent source confirmation. Alchetex directly fills this named gap.</p>
+    </div>
+
+    <!-- METRIC CARDS -->
+    <div class="metric-row">
+      <div class="mc mc-accent">
+        <div class="mc-label">UK SOM — base case (£M/yr)</div>
+        <div class="mc-val" id="out-som">£8.0M</div>
+        <div class="mc-sub neu" id="out-som-d">31 GWh · 5% share · £0.54/m²</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">EU SAM — risk-adj (£M/yr)</div>
+        <div class="mc-val" id="out-eu">£65M</div>
+        <div class="mc-sub neu" id="out-eu-d">451 GWh · 5% share</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">Competitive window (months)</div>
+        <div class="mc-val" id="out-window">24</div>
+        <div class="mc-sub pos" id="out-window-d">Defensible moat</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">UK supply gap 2030</div>
+        <div class="mc-val" id="out-gap">69%</div>
+        <div class="mc-sub neu" id="out-gap-d">69 GWh unmet of 100 GWh demand</div>
+      </div>
+    </div>
+
+    <!-- CHART ROW 1 -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">UK supply vs demand trajectory</div>
+        <div class="chart-sub">GWh · Commission Jan 2026 anchored</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="supplyChart" role="img" aria-label="UK battery supply vs demand 2024-2035"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Revenue scenario modelling</div>
+        <div class="chart-sub">£M/yr · Smithers intensity anchor</div>
+        <div class="chart-wrap" style="height:220px"><canvas id="revenueChart" role="img" aria-label="Revenue scenario modelling"></canvas></div>
+      </div>
+    </div>
+
+    <!-- BAR LIST -->
+    <div class="section" style="margin-top:20px">
+      <div class="section-title">Outcome drivers</div>
+      <div class="bar-list" id="barList"></div>
+    </div>
+
+    <!-- EV DEMAND CHART -->
+    <div class="chart-card" style="margin-top:16px">
+      <div class="chart-title">US BEV adoption — real data 2020–2025</div>
+      <div class="chart-sub">Units · Competitor dataset · China 99.9% of UK BEV imports 2025</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="evChart" role="img" aria-label="US BEV adoption 2020-2025"></canvas></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 2 — MARKET ANALYSIS
+════════════════════════════════════════════════════ -->
+<div id="page-market" class="page">
+<div class="content" style="max-width:1200px; margin:0 auto;">
+
+  <div class="section-title" style="margin-bottom:18px;">TAM · SAM · SOM — Battery Separator Market</div>
+
+  <div class="metric-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="mc mc-accent">
+      <div class="mc-label">Global separator TAM 2025</div>
+      <div class="mc-val">$8.1B</div>
+      <div class="mc-sub neu">→ $32.5B by 2032 at 22% CAGR</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">EU SAM (risk-adj pipeline)</div>
+      <div class="mc-val">451 GWh</div>
+      <div class="mc-sub neu">£14–36M/yr platform revenue</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">UK confirmed pipeline 2030</div>
+      <div class="mc-val">31 GWh</div>
+      <div class="mc-sub neg">↓ from 57.6 GWh (Faraday 2024)</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">UK supply gap 2030</div>
+      <div class="mc-val">69%</div>
+      <div class="mc-sub neg">69 GWh unmet · no UK separator mfr</div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Global separator TAM growth</div>
+      <div class="chart-sub">$B · Frost & Sullivan Feb 2026 + Arizton 2026 (within 1.1% convergence)</div>
+      <div class="chart-wrap" style="height:260px"><canvas id="tamChart" role="img" aria-label="Global separator TAM growth"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">European gigafactory pipeline (risk-adj)</div>
+      <div class="chart-sub">GWh by 2030 · Faraday Institution 2024</div>
+      <div class="chart-wrap" style="height:260px"><canvas id="gigaChart" role="img" aria-label="European gigafactory pipeline"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Global Li-ion installed capacity</div>
+      <div class="chart-sub">GWh · Benchmark Minerals · CAGR 48.6% (2020–2024)</div>
+      <div class="chart-wrap" style="height:260px"><canvas id="liionChart" role="img" aria-label="Global Li-ion installed capacity"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">EU BEV market share recovery</div>
+      <div class="chart-sub">% · ACEA 2024–Q1 2026 · Q1 2026: 19.4%</div>
+      <div class="chart-wrap" style="height:260px"><canvas id="bevChart" role="img" aria-label="EU BEV market share recovery"></canvas></div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px; background:var(--white); border:1px solid var(--grey-200); border-radius:var(--radius-lg); overflow:hidden;">
+    <div style="padding:16px 20px; border-bottom:1px solid var(--grey-100);">
+      <div class="chart-title">UK gigafactory pipeline — named plants</div>
+      <div class="chart-sub">Faraday Institution 2024 vs Commission Jan 2026</div>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="moat-table">
+      <thead><tr>
+        <th>Plant / Operator</th><th>Location</th>
+        <th>GWh (Faraday 2024)</th><th>GWh (Commission 2026)</th>
+        <th>Opens</th><th>Key customer</th><th>Alchetex priority</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><span class="competitor-name">AESC Plant 1</span></td><td>Sunderland, NE</td><td>1.8</td><td>1.8</td><td>Operational</td><td>Nissan</td><td><span class="st-tag tag-uk">PRIORITY</span></td></tr>
+        <tr><td><span class="competitor-name">AESC Plant 2</span></td><td>Sunderland, NE</td><td>15.8</td><td>15.8</td><td>2025</td><td>Nissan</td><td><span class="st-tag tag-uk">HIGH</span></td></tr>
+        <tr style="background:var(--teal-pale)"><td><span class="competitor-name">Agratas (Tata)</span></td><td>Bridgwater, Somerset</td><td>40.0</td><td>~15 Ph1 / 40 full</td><td>Late 2027</td><td>JLR / Tata Motors</td><td><span class="st-tag tag-uk">HIGH</span></td></tr>
+        <tr><td><span class="competitor-name">West Midlands Giga</span></td><td>Coventry Airport</td><td>20.0</td><td>Up to 60</td><td>TBD</td><td>TBD</td><td><span class="st-tag" style="background:var(--amber-pale);color:var(--amber)">MONITOR</span></td></tr>
+        <tr style="background:var(--grey-50); color:var(--grey-400)"><td>Britishvolt</td><td>Blyth</td><td>—</td><td>—</td><td>Failed 2023</td><td>—</td><td>None</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="margin-top:20px">
+    <h3>Rules of Origin — commercial pull argument (Jan 2027 cliff)</h3>
+    <p>Every m² of Alchetex substrate = UK-originating content reducing OEM tariff exposure. AESC Plant 2 (15.8 GWh full capacity): <strong>£45.5M UK-originating content</strong>. Agratas Phase 1 (15 GWh): <strong>£43.2M UK-originating content</strong>. 10% tariff applies from Jan 2027 on non-compliant UK EV exports to EU.</p>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 3 — COMPETITOR LANDSCAPE
+════════════════════════════════════════════════════ -->
+<div id="page-competitor" class="page">
+<div class="content" style="max-width:1200px; margin:0 auto;">
+
+  <div class="section-title" style="margin-bottom:18px;">Competitive position — Substrate AI</div>
+
+  <div class="highlight-box">
+    <h3>Category position</h3>
+    <p>Substrate AI is the <strong>only platform operating before trial commitment with nonwoven substrate specificity</strong>. Adjacent platforms operate either in-production (post-trial) or without contamination-specific substrate intelligence. The gap is structurally unoccupied — not temporarily.</p>
+  </div>
+
+  <!-- 2×2 MATRIX -->
+  <div class="section">
+    <div class="section-title">Competitive matrix — pre-trial prediction vs substrate specificity</div>
+    <div class="matrix-wrap">
+      <div class="matrix-outer">
+        <div class="axis-y">Substrate-specific ↑ &nbsp; General-purpose ↓</div>
+        <div style="flex:1">
+          <div class="matrix">
+            <!-- Top-left: substrate-specific, in-production -->
+            <div class="quadrant">
+              <div class="q-label">In-production · substrate-specific</div>
+              <div class="q-items">
+                <div class="q-item">Mahlo</div>
+                <div class="q-item">ISRA VISION</div>
+                <div class="q-item">Oerlikon</div>
+                <div class="q-item">ANDRITZ</div>
+              </div>
+              <div style="font-size:10px;color:var(--amber);margin-top:4px">Vision AI defect detection — in-production only</div>
+            </div>
+            <!-- Top-right: SUBSTRATE AI hero -->
+            <div class="quadrant q-hero">
+              <div class="q-label">PRE-TRIAL · SUBSTRATE-SPECIFIC</div>
+              <div class="q-name">SUBSTRATE AI</div>
+              <div class="q-tagline">Alone in this quadrant. Pre-trial contamination risk prediction — before any physical commitment. Nonwoven separator specificity. OEM-validated outputs.</div>
+            </div>
+            <!-- Bottom-left: general, in-production -->
+            <div class="quadrant">
+              <div class="q-label">In-production · general-purpose</div>
+              <div class="q-items">
+                <div class="q-item">Siemens Digital Twin</div>
+                <div class="q-item">Dassault SIMULIA</div>
+                <div class="q-item">PTC ThingWorx</div>
+                <div class="q-item">Voltaiq</div>
+                <div class="q-item">Glimpse</div>
+              </div>
+            </div>
+            <!-- Bottom-right: general, pre-trial -->
+            <div class="quadrant">
+              <div class="q-label">Pre-trial · general-purpose</div>
+              <div class="q-items">
+                <div class="q-item">Citrine Informatics</div>
+                <div class="q-item">Polymerize AI</div>
+                <div class="q-item">Ansys Materials</div>
+                <div class="q-item">CuspAI</div>
+              </div>
+              <div style="font-size:10px;color:var(--grey-400);margin-top:4px">No nonwoven specificity. No contamination science.</div>
+            </div>
+          </div>
+          <div class="axis-x">← In-production / post-trial &nbsp;&nbsp; Pre-trial prediction →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPETITOR TABLE -->
+  <div class="section">
+    <div class="section-title">Named competitor intelligence — Orbis/BvD + Crunchbase May 2026</div>
+    <div style="background:var(--white);border:1px solid var(--grey-200);border-radius:var(--radius-lg);overflow:hidden">
+    <table class="moat-table">
+      <thead><tr>
+        <th>Company</th><th>Category</th><th>Revenue</th><th>Total raised</th><th>Stage</th><th>Threat to Alchetex</th><th>Key intel</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="competitor-name">CuspAI</span></td>
+          <td>Materials discovery AI</td>
+          <td>Pre-revenue</td>
+          <td>$130M+</td>
+          <td>Series A+ ($100M Sep 2025)</td>
+          <td><div class="threat-bar"><div class="threat-dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot empty"></div><div class="dot empty"></div></div> Medium</div></td>
+          <td>Cambridge. NVIDIA/Temasek/Samsung backed. May expand into separator domain with $200M war chest. General materials discovery — not contamination-specific.</td>
+        </tr>
+        <tr>
+          <td><span class="competitor-name">Citrine Informatics</span></td>
+          <td>Materials informatics</td>
+          <td>~$450k est.</td>
+          <td>~$81M</td>
+          <td>Series C ($16M Jan 2023)</td>
+          <td><div class="threat-bar"><div class="threat-dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot empty"></div><div class="dot empty"></div><div class="dot empty"></div></div> Low-med</div></td>
+          <td>Cautionary benchmark: $81M raised over 12 years, ~$450k revenue — horizontal AI without domain moat. Citrine's weakness = Alchetex's moat argument.</td>
+        </tr>
+        <tr>
+          <td><span class="competitor-name">TWAICE</span></td>
+          <td>Battery analytics SaaS</td>
+          <td>Gross profit €3.57M</td>
+          <td>~$100M</td>
+          <td>Series B ext + EIB loan ($28M Feb 2026)</td>
+          <td><div class="threat-bar"><div class="threat-dots"><div class="dot filled"></div><div class="dot empty"></div><div class="dot empty"></div><div class="dot empty"></div><div class="dot empty"></div></div> Low</div></td>
+          <td>BMS/operational analytics — post-production. Not substrate-specific. EIB backing signals EU strategic funding available for battery AI category.</td>
+        </tr>
+        <tr>
+          <td><span class="competitor-name">Voltaiq</span></td>
+          <td>Formation analytics</td>
+          <td>~$2M est.</td>
+          <td>~$15M</td>
+          <td>Series A (2018)</td>
+          <td><div class="threat-bar"><div class="threat-dots"><div class="dot filled"></div><div class="dot empty"></div><div class="dot empty"></div><div class="dot empty"></div><div class="dot empty"></div></div> Low</div></td>
+          <td>6 employees. Post-production cell analytics. Lean profitable SaaS ($345k/employee). Pricing benchmark: $40–100k per GWh/yr.</td>
+        </tr>
+        <tr>
+          <td><span class="competitor-name">Polaron</span></td>
+          <td>Materials AI — EV batteries</td>
+          <td>Pre-revenue</td>
+          <td>£1.34M cash</td>
+          <td>Gov. £1M Manchester Prize Mar 2025</td>
+          <td><div class="threat-bar"><div class="threat-dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot empty"></div><div class="dot empty"></div><div class="dot empty"></div></div> Low-med</div></td>
+          <td>Imperial College spinout. AI predicts material performance from microstructural images — similar category, different application (not contamination prediction). Gov-validated.</td>
+        </tr>
+        <tr style="background:var(--teal-pale)">
+          <td><span class="competitor-name">Dotmatics → Siemens</span></td>
+          <td>Scientific intelligence platform</td>
+          <td>€36.4M FY2024</td>
+          <td>Acquired $5.1B Jul 2025</td>
+          <td>EXIT COMP · 17×+ revenue</td>
+          <td><div class="threat-bar" style="color:var(--teal)">Exit comparable</div></td>
+          <td>BEST EXIT COMP for Alchetex. Same category (scientific intelligence for materials manufacturing). Siemens paid $5.1B including Intellegens (UK materials informatics AI). 17× revenue multiple = Alchetex Series A valuation anchor.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- 4 MOATS -->
+  <div class="section">
+    <div class="section-title">Four structural barriers — why the moat compounds</div>
+    <div class="evidence-grid">
+      <div class="ev-card">
+        <div class="ev-tier t1">Barrier 01 · Years to replicate</div>
+        <h3>Proprietary contamination dataset</h3>
+        <p>Built through the NPL consortium. Combines NPL-traceable metrology, industrial trial data, and contamination-specific process intelligence. No commercial entity can acquire this without replicating years of consortium investment and calibrated measurement infrastructure.</p>
+      </div>
+      <div class="ev-card">
+        <div class="ev-tier t1">Barrier 02 · Cannot pivot from general tools</div>
+        <h3>Hybrid FE+AI architecture</h3>
+        <p>Combines finite element physics modelling with AI trained specifically on contamination behaviour in nonwoven substrates. General-purpose ML has no FE physics backbone. General-purpose FE has no contamination training data. The combination is proprietary.</p>
+      </div>
+      <div class="ev-card">
+        <div class="ev-tier t1">Barrier 03 · Commercially exclusive</div>
+        <h3>OEM qualification workflow</h3>
+        <p>AESC Tier-1 OEM anchor is not just a customer — it is the source of sign-off authority that makes Substrate AI outputs credible to the wider battery supply chain. A new entrant cannot replicate this without first securing equivalent OEM sponsorship — a multi-year process.</p>
+      </div>
+      <div class="ev-card">
+        <div class="ev-tier t2">Barrier 04 · Gap widens over time</div>
+        <h3>First-mover compounding advantage</h3>
+        <p>Every qualification run generates new contamination data that retrains the model. Every OEM sign-off deepens the workflow. A new entrant starting today faces a moving target — the advantage compounds with each production cycle.</p>
+      </div>
+      <div class="ev-card" style="grid-column:span 2">
+        <div class="ev-tier t1">Production stage mapping — where Substrate AI sits</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px">
+          <div style="text-align:center;padding:10px 6px;border-radius:6px;background:var(--navy);color:var(--white)">
+            <div style="font-size:10px;font-weight:700;color:var(--teal-light)">01 · UNCONTESTED</div>
+            <div style="font-size:11px;font-weight:600;margin:6px 0">Substrate qualification</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.6)">SUBSTRATE AI alone</div>
+          </div>
+          <div style="text-align:center;padding:10px 6px;border-radius:6px;background:var(--amber-pale)">
+            <div style="font-size:10px;font-weight:700;color:var(--amber)">02 · PARTIAL</div>
+            <div style="font-size:11px;font-weight:600;margin:6px 0;color:var(--grey-800)">Electrode mfg</div>
+            <div style="font-size:10px;color:var(--grey-400)">Altair EDEM · ANDRITZ</div>
+          </div>
+          <div style="text-align:center;padding:10px 6px;border-radius:6px;background:var(--grey-100)">
+            <div style="font-size:10px;font-weight:700;color:var(--grey-400)">03 · GENERAL</div>
+            <div style="font-size:11px;font-weight:600;margin:6px 0;color:var(--grey-800)">Cell assembly</div>
+            <div style="font-size:10px;color:var(--grey-400)">Siemens · Dassault</div>
+          </div>
+          <div style="text-align:center;padding:10px 6px;border-radius:6px;background:var(--green-pale)">
+            <div style="font-size:10px;font-weight:700;color:var(--green)">04 · WELL SERVED</div>
+            <div style="font-size:11px;font-weight:600;margin:6px 0;color:var(--grey-800)">Formation cycling</div>
+            <div style="font-size:10px;color:var(--grey-400)">Voltaiq · Glimpse</div>
+          </div>
+          <div style="text-align:center;padding:10px 6px;border-radius:6px;background:var(--green-pale)">
+            <div style="font-size:10px;font-weight:700;color:var(--green)">05 · WELL SERVED</div>
+            <div style="font-size:11px;font-weight:600;margin:6px 0;color:var(--grey-800)">Quality inspection</div>
+            <div style="font-size:10px;color:var(--grey-400)">Mahlo · ISRA · Oerlikon</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 4 — SOM CALCULATOR
+════════════════════════════════════════════════════ -->
+<div id="page-som" class="page">
+<div class="content" style="max-width:1200px; margin:0 auto;">
+
+  <div class="section-title" style="margin-bottom:18px">SOM Revenue Calculator — live model</div>
+
+  <div class="highlight-box">
+    <h3>Model anchors — Smithers May 2025 · Commission Jan 2026</h3>
+    <p>Intensity: <strong>700 m²/battery (Smithers primary figure)</strong> · Base case: 400 m²/battery · 5.33M m²/GWh · ASP working: <strong>£0.54/m²</strong> (ONS + BNEF + industrial wipes triangulation) · Commission SOM range £40–120M independently validates model order of magnitude.</p>
+  </div>
+
+  <div class="calc-grid">
+    <div>
+      <div class="input-card">
+        <h3>Adjust assumptions</h3>
+        <div class="input-row">
+          <label>UK GWh (confirmed pipeline) — Commission 2026</label>
+          <input type="range" id="c-uk-ghw" min="15" max="100" value="31" step="1" oninput="calcSOM()">
+          <div class="input-readout"><span class="r-left">15 GWh</span><span id="rv-uk-ghw">31 GWh</span><span>100 GWh</span></div>
+        </div>
+        <div class="input-row">
+          <label>EU GWh (risk-adj pipeline) — Faraday 2024</label>
+          <input type="range" id="c-eu-ghw" min="200" max="770" value="451" step="1" oninput="calcSOM()">
+          <div class="input-readout"><span>200</span><span id="rv-eu-ghw">451 GWh</span><span>770</span></div>
+        </div>
+        <div class="input-row">
+          <label>Alchetex market share (%)</label>
+          <input type="range" id="c-share" min="1" max="20" value="5" step="1" oninput="calcSOM()">
+          <div class="input-readout"><span>1%</span><span id="rv-share">5%</span><span>20%</span></div>
+        </div>
+        <div class="input-row">
+          <label>Substrate intensity (M m²/GWh) — Smithers anchored</label>
+          <input type="range" id="c-intensity" min="1" max="10" value="5" step="1" oninput="calcSOM()">
+          <div class="input-readout"><span>1M</span><span id="rv-intensity">5M m²/GWh</span><span>9.33M (Smithers high)</span></div>
+        </div>
+        <div class="input-row">
+          <label>ASP (£/m²) — triangulation mid = £0.54</label>
+          <input type="range" id="c-asp" min="16" max="90" value="54" step="1" oninput="calcSOM()">
+          <div class="input-readout"><span>£0.165</span><span id="rv-asp">£0.54/m²</span><span>£0.90</span></div>
+        </div>
+      </div>
+      <div style="margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="mc mc-accent">
+          <div class="mc-label">UK SOM (£M/yr)</div>
+          <div class="mc-val" id="calc-uk">£8.0M</div>
+          <div class="mc-sub neu" id="calc-uk-d">31 GWh · 5% · £0.54</div>
+        </div>
+        <div class="mc">
+          <div class="mc-label">EU SAM revenue (£M/yr)</div>
+          <div class="mc-val" id="calc-eu">£65M</div>
+          <div class="mc-sub neu" id="calc-eu-d">451 GWh · 5% · £0.54</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Scenario table — SOM v4 · Commission Jan 2026 anchored</div>
+      <div class="scenario-table">
+        <div class="st-row st-header">
+          <div>Scenario</div><div style="text-align:right">Low</div><div style="text-align:right">Base</div><div style="text-align:right">High</div><div style="text-align:right">Tag</div>
+        </div>
+        <div class="st-row st-primary">
+          <div><div class="st-name">★ UK primary base case</div><div style="font-size:10px;color:var(--teal)">31 GWh confirmed · 5% share</div></div>
+          <div class="st-val">£1.4M</div><div class="st-val hi">£4.5M</div><div class="st-val">£13M</div>
+          <div><span class="st-tag tag-uk">UK</span></div>
+        </div>
+        <div class="st-row">
+          <div><div class="st-name">UK established position</div><div style="font-size:10px;color:var(--grey-400)">31 GWh · 15% share</div></div>
+          <div class="st-val">£4.1M</div><div class="st-val">£13.4M</div><div class="st-val">£39M</div>
+          <div><span class="st-tag tag-uk">UK</span></div>
+        </div>
+        <div class="st-row">
+          <div><div class="st-name">UK max sites (if all expand)</div><div style="font-size:10px;color:var(--grey-400)">66 GWh · 5% share</div></div>
+          <div class="st-val">£2.9M</div><div class="st-val">£9.5M</div><div class="st-val">£27.7M</div>
+          <div><span class="st-tag tag-uk">UK</span></div>
+        </div>
+        <div class="st-row">
+          <div><div class="st-name">UK full demand 2030</div><div style="font-size:10px;color:var(--grey-400)">100 GWh · 5% share</div></div>
+          <div class="st-val">£4.4M</div><div class="st-val">£14.4M</div><div class="st-val">£42M</div>
+          <div><span class="st-tag tag-uk">UK</span></div>
+        </div>
+        <div class="st-row">
+          <div><div class="st-name">UK full demand 2035</div><div style="font-size:10px;color:var(--grey-400)">130 GWh · 5% · Innovate UK anchor</div></div>
+          <div class="st-val">£5.7M</div><div class="st-val">£18.7M</div><div class="st-val">£55M</div>
+          <div><span class="st-tag tag-uk">UK</span></div>
+        </div>
+        <div class="st-row">
+          <div><div class="st-name">EU SAM (Commission 2030)</div><div style="font-size:10px;color:var(--grey-400)">745 GWh · 5% share</div></div>
+          <div class="st-val">£32.8M</div><div class="st-val">£107M</div><div class="st-val">£312M</div>
+          <div><span class="st-tag tag-eu">EU</span></div>
+        </div>
+        <div class="st-row">
+          <div><div class="st-name">EU SAM risk-adj (Faraday 2024)</div><div style="font-size:10px;color:var(--grey-400)">451 GWh · 5% share</div></div>
+          <div class="st-val">£19.9M</div><div class="st-val">£65M</div><div class="st-val">£189M</div>
+          <div><span class="st-tag tag-eu">EU</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <div class="chart-card">
+          <div class="chart-title">SOM scenario waterfall (base case)</div>
+          <div class="chart-sub">£M/yr · Smithers intensity · £0.54/m² ASP</div>
+          <div class="chart-wrap" style="height:240px"><canvas id="somChart" role="img" aria-label="SOM scenario waterfall"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 5 — EVIDENCE BASE
+════════════════════════════════════════════════════ -->
+<div id="page-evidence" class="page">
+<div class="content" style="max-width:1200px; margin:0 auto;">
+
+  <div class="section-title" style="margin-bottom:18px">Evidence base — 37 source files · Batches 1–12</div>
+
+  <div class="highlight-box">
+    <h3>UK separator gap — 5 independent confirmations</h3>
+    <p>ONS Prodcom 2022 · Faraday Institution Sep 2024 · Smithers May 2025 · UK Gigafactory Commission Jan 2026 · DBT Sector Mapping Feb 2026. Commission Section 4.2 verbatim: <strong>"no significant UK manufacturing of separators"</strong> — highest authority primary government source.</p>
+  </div>
+
+  <div class="evidence-grid">
+    <div class="ev-card">
+      <div class="ev-tier t1">Tier 1 · Primary government</div>
+      <h3>UK Gigafactory Commission — Jan 2026</h3>
+      <div class="ev-figure">31 GWh confirmed · 69% supply gap</div>
+      <p>Most current UK battery policy document. Section 4.2 verbatim separator gap confirmation. RoO cliff Jan 2027. Commission SAM £400–800M / SOM £40–120M independently validates model.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t1">Tier 1 · Primary research</div>
+      <h3>Frost & Sullivan — Battery Materials Feb 2026</h3>
+      <div class="ev-figure">$8.09B → $32.54B · 22% CAGR</div>
+      <p>161 pages, primary research, named analysts. Highest quality TAM source in dataset. Converges with Arizton $8.0B within 1.1%. Separators = highest CAGR of all battery materials.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t1">Tier 1 · Nonwovens authority</div>
+      <h3>Smithers — Nonwoven Battery Separators 2030 · May 2025</h3>
+      <div class="ev-figure">700 m²/battery · $1.7B → $4.0B</div>
+      <p>Global authority on nonwovens, est. 1925. Only published report specifically for nonwoven battery separators. 700 m²/battery = PRIMARY CITABLE INTENSITY FIGURE. Zero UK manufacturers confirmed.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t1">Tier 1 · UKRI-commissioned</div>
+      <h3>UKRI / WMG — UK Battery Demand 2035 · Apr 2025</h3>
+      <div class="ev-figure">>100 GWh demand 2030 · 55 GWh shortfall 2035</div>
+      <p>Commissioned by Innovate UK. Assessors will recognise this report. Manufacturing processes AND thermal runaway named as R&D priorities — directly validate Substrate AI application domains.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t1">Tier 1 · Industry specialist</div>
+      <h3>Teknek Academy White Paper · May 2023</h3>
+      <div class="ev-figure">40% defect reduction · 0.2μm cleaning limit</div>
+      <p>UK-based. Supplies CATL, LG Energy, Samsung SDI, Tesla, Panasonic. CRITICAL GAP: Teknek cleaning starts at cell line — assumes substrate arrives in defined condition. Substrate AI fills the gap Teknek cannot address.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t1">Tier 1 · UK industry</div>
+      <h3>Meech International White Paper · 2024–25</h3>
+      <div class="ev-figure">$900M Hyundai recall · 16 contamination points</div>
+      <p>UK-based (Oxfordshire). Contamination introduced during inter-facility transit — validates Alchetex prediction-at-source approach. $900M recall = commercial case in one number. Meech + Teknek = potential channel partners.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t1">Tier 1 · Exit comparable</div>
+      <h3>Siemens acquires Dotmatics · Jul 2025</h3>
+      <div class="ev-figure">$5.1B · 17× revenue multiple</div>
+      <p>BEST EXIT COMP for Alchetex. Dotmatics = scientific intelligence platform for Life Sciences R&D. Alchetex Substrate AI = scientific intelligence platform for materials manufacturing. Same acquirer profile. Included Intellegens (UK materials informatics AI).</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t2">Tier 2 · Verified free summary</div>
+      <h3>Mordor Intelligence — Materials Informatics · 2025</h3>
+      <div class="ev-figure">$161M → $390M · 24.8% CAGR</div>
+      <p>D&B D-U-N-S verified · ESOMAR member · ISO certified. Battery/fuel cells explicitly named end-user segment. Process optimisation & scale-up = Substrate AI's application. Cross-validated by MarketsandMarkets and Grand View Research.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t2">Tier 2 · Primary UK deep tech data</div>
+      <h3>RAEng / Dealroom — State of UK Deep Tech 2025</h3>
+      <div class="ev-figure">CuspAI $100M Series A · $43.7B UK VC since 2019</div>
+      <p>CuspAI ($100M, Cambridge, AI for materials) = BEST Series A comparable. Advanced Materials at 0.31% global share = most underfunded IS-8 sector = blue ocean. Innovate UK $1.9B since 2019 confirms correct funding mechanism at TRL 2–3.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t2">Tier 2 · Government confirmation</div>
+      <h3>DBT / Carbon Limiting Technologies — UK Battery Sector Mapping · Feb 2026</h3>
+      <div class="ev-figure">290 companies · £4.2B turnover · 15 separator sites</div>
+      <p>15 separator sites identified — none are UK nonwoven separator manufacturers. 5th independent gap source. 30 modelling/informatics sites = near-term SAM for Substrate AI platform. £6.6B UK battery private investment confirmed.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t2">Tier 2 · Policy anchor</div>
+      <h3>DBT — UK Battery Strategy · Nov 2023</h3>
+      <div class="ev-figure">£11M FBC competition · AI tools named verbatim</div>
+      <p>FBC competition EXPLICITLY names "artificial intelligence and digital tools to increase battery performance." Competition 2453 IS this competition. Alchetex can quote the UK Battery Strategy directly.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-tier t1">Tier 1 · Prize validation</div>
+      <h3>Polaron — UK Manchester Prize · Mar 2025</h3>
+      <div class="ev-figure">£1M prize · EV batteries explicitly named</div>
+      <p>Imperial College spinout. AI for materials, EV batteries. Secretary of State Peter Kyle: "AI could generate £400 billion to our economy over the next five years." Manchester Prize Round 2 (Clean Energy AI) = potential future funding route for Alchetex.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// DATA & LEVER DEFINITIONS
+// ══════════════════════════════════════════════════
+const LEVERS = [
+  { id:'ev_adopt',    name:'EU BEV market share trajectory', levels:['14.4% (2024 dip)','17.4% (2025)','19.4% (Q1 2026)','25%+ (forecast)'] },
+  { id:'uk_ghw',     name:'UK confirmed GWh 2030',          levels:['15 GWh (min)','31 GWh (Commission)','57.6 GWh (Faraday)','100 GWh (demand)'] },
+  { id:'eu_ghw',     name:'EU addressable GWh 2030',        levels:['200 GWh (bear)','451 GWh (risk-adj)','745 GWh (Commission)','770 GWh (IEA)'] },
+  { id:'recall_risk',name:'Contamination recall risk level', levels:['Low — stable supply','Moderate — $900M Hyundai','Elevated — multi-OEM','Critical — active recalls'] },
+  { id:'oem_mandate',name:'OEM quality mandate intensity',   levels:['Voluntary only','Tier-1 emerging','Mandatory — RoO cliff','Zero-defect enforced'] },
+  { id:'trl',        name:'Substrate AI TRL advancement',    levels:['TRL 3 (current)','TRL 4 by end 2025','TRL 5 by 2026','TRL 6+ by 2027'] },
+  { id:'data_vol',   name:'Training data volume',            levels:['Synthetic only','+NPL lab trials','+Consortium partners','Full industrial OEM'] },
+  { id:'validation', name:'Validation partner depth',        levels:['NPL only','NPL + Loughborough','Full consortium','OEM-embedded sign-off'] },
+  { id:'comp_threat',name:'Competitor platform maturity',    levels:['Fragmented / none','1–2 tools emerging','Funded platform','CuspAI enters segment'] },
+  { id:'ip_moat',    name:'Alchetex IP protection status',   levels:['Trade secret only','PCT filing pending','Granted + licenced','Defensive portfolio'] },
+  { id:'iuk_funding',name:'Innovate UK funding secured',     levels:['None','Phase 1 only','Comp 2453 award','Multi-grant programme'] },
+  { id:'rou_cliff',  name:'RoO / regulatory tailwind',       levels:['Voluntary standards','RoO approaching','Jan 2027 cliff confirmed','UKCA mandate active'] },
+];
+
+const BADGELABELS = ['Low','Moderate','High','Max'];
+const SCENARIOS = {
+  base:   [1,1,1,1,1,0,0,0,1,1,1,1],
+  bull:   [2,3,2,2,2,2,2,2,0,2,2,2],
+  bear:   [0,0,0,0,0,0,0,0,2,0,0,0],
+  recall: [2,1,1,3,3,1,1,1,1,2,2,3],
+  custom: null,
+};
+
+const state = [1,1,1,1,1,0,0,0,1,1,1,1];
+
+// ── Load from URL
+function loadFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const l = params.get('levers');
+  if(l && l.length === LEVERS.length) {
+    l.split('').forEach((c,i)=>{ const v=parseInt(c)-1; if(v>=0&&v<=3) state[i]=v; });
+  }
+}
+loadFromURL();
+
+// ══════════════════════════════════════════════════
+// BUILD LEVERS
+// ══════════════════════════════════════════════════
+function buildLevers() {
+  LEVERS.forEach((lev,i) => {
+    const el = document.getElementById('lr-'+lev.id);
+    if(!el) return;
+    el.innerHTML = `<div class="lever-label"><span>${lev.name}</span><span class="lever-badge lbv-${state[i]}" id="badge-${lev.id}">${BADGELABELS[state[i]]}</span></div><div class="lever-track">${lev.levels.map((l,j)=>`<button class="lbtn ${state[i]===j?'av'+j:''}" data-i="${i}" data-j="${j}" title="${l}">${j+1}</button>`).join('')}</div>`;
+  });
+  document.querySelectorAll('.lbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i, j=+btn.dataset.j;
+      state[i]=j;
+      refreshLever(i);
+      setScenario('custom');
+      recalc();
+    });
+  });
+}
+
+function refreshLever(i) {
+  const lev = LEVERS[i], v = state[i];
+  const badge = document.getElementById('badge-'+lev.id);
+  if(badge){ badge.textContent=BADGELABELS[v]; badge.className='lever-badge lbv-'+v; }
+  document.querySelectorAll(`[data-i="${i}"]`).forEach((b,j)=>{ b.className='lbtn'+(j===v?' av'+j:''); });
+}
+
+function setScenario(key) {
+  document.querySelectorAll('.scen-btn').forEach((b,i)=>{
+    const keys=['base','bull','bear','recall','custom'];
+    b.classList.toggle('active', keys[i]===key);
+  });
+}
+
+function loadScenario(key) {
+  if(key==='custom'){ setScenario('custom'); return; }
+  const s = SCENARIOS[key];
+  s.forEach((v,i)=>{ state[i]=v; refreshLever(i); });
+  setScenario(key);
+  recalc();
+}
+
+// ══════════════════════════════════════════════════
+// CALCULATIONS
+// ══════════════════════════════════════════════════
+function recalc() {
+  const ev=state[0], ukGhw=state[1], euGhw=state[2], recall=state[3], oem=state[4];
+  const trl=state[5], dataV=state[6], valid=state[7], comp=state[8], ip=state[9];
+  const iuk=state[10], rou=state[11];
+
+  const demandScore = (ev + recall + oem) / 9;
+  const techScore   = (trl + dataV + valid) / 9;
+  const moatScore   = (ip + (3-comp)) / 6;
+  const policyScore = (iuk + rou) / 6;
+
+  // UK SOM base: 31 GWh confirmed base, scale by ukGhw lever
+  const ukGhwVals = [15, 31, 57.6, 100];
+  const ukGhwNum  = ukGhwVals[ukGhw];
+  const shareBase  = 0.05;
+  const intensityBase = 5.33; // M m²/GWh (Smithers 400m²/battery base)
+  const aspBase = 0.54;
+  const ukSOM = ukGhwNum * shareBase * intensityBase * aspBase;
+
+  // EU SAM revenue
+  const euGhwVals = [200, 451, 745, 770];
+  const euGhwNum  = euGhwVals[euGhw];
+  const euSAM = euGhwNum * shareBase * intensityBase * aspBase;
+
+  // Competitive window
+  const compWindow = Math.round(8 + moatScore * 36 - comp * 5);
+
+  // Supply gap
+  const supplyGap = 69 + (2 - ukGhw) * 5;
+
+  document.getElementById('out-som').textContent = '£'+ukSOM.toFixed(1)+'M';
+  document.getElementById('out-som-d').textContent = ukGhwNum+'GWh · 5% share · £0.54/m²';
+  document.getElementById('out-eu').textContent = '£'+Math.round(euSAM)+'M';
+  document.getElementById('out-eu-d').textContent = euGhwNum+' GWh · 5% share';
+  document.getElementById('out-window').textContent = Math.max(6,compWindow);
+  document.getElementById('out-window-d').textContent = moatScore>0.5 ? 'Defensible moat' : 'Narrow window';
+  document.getElementById('out-window-d').className = 'mc-sub '+(moatScore>0.5?'pos':'neg');
+  document.getElementById('out-gap').textContent = Math.min(85,Math.max(40,supplyGap))+'%';
+
+  const bars = [
+    { name:'EU BEV market share', val: Math.round(14+ev*3), color:'#0D6E6E' },
+    { name:'UK supply gap 2030',  val: Math.round(60+oem*5), color:'#C0392B' },
+    { name:'Recall-driven urgency', val: Math.round(20+recall*20), color:'#C0392B' },
+    { name:'RoO compliance urgency', val: Math.round(10+rou*25), color:'#D4891A' },
+    { name:'Platform tech readiness', val: Math.round(20+techScore*65), color:'#0D6E6E' },
+    { name:'IP & moat strength', val: Math.round(moatScore*90), color:'#0C2340' },
+    { name:'Policy tailwind', val: Math.round(15+policyScore*65), color:'#1E7B4B' },
+  ];
+  const bl = document.getElementById('barList');
+  if(bl) bl.innerHTML = bars.map(b=>`<div class="bar-item"><div class="bar-name">${b.name}</div><div class="bar-track"><div class="bar-fill" style="width:${b.val}%;background:${b.color}"></div></div><div class="bar-val">${b.val}%</div></div>`).join('');
+
+  // Update supply chart
+  if(window.supplyChart) {
+    const gapAdjust = (2-ukGhw)*5;
+    window.supplyChart.data.datasets[0].data = [10,17.6,31+gapAdjust/2,31+gapAdjust/3,31+gapAdjust/4,31];
+    window.supplyChart.update('none');
+  }
+
+  // Update URL
+  const code = state.map(v=>v+1).join('');
+  const el = document.getElementById('urlCode');
+  if(el) el.textContent = '?levers='+code;
+
+  const newUrl = window.location.pathname+'?levers='+code;
+  window.history.replaceState(null,'',newUrl);
+}
+
+// ══════════════════════════════════════════════════
+// PAGE NAVIGATION
+// ══════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.target.classList.add('active');
+  if(id==='market') initMarketCharts();
+  if(id==='som') initSOMChart();
+}
+
+// ══════════════════════════════════════════════════
+// SCENARIO CHARTS
+// ══════════════════════════════════════════════════
+function initScenarioCharts() {
+  // Supply vs demand
+  const sc = document.getElementById('supplyChart');
+  if(sc){
+    window.supplyChart = new Chart(sc,{
+      type:'line',
+      data:{
+        labels:['2024','2025','2027','2028','2030','2035'],
+        datasets:[
+          {label:'Confirmed supply (GWh)',data:[1.8,17.6,31,31,31,66],borderColor:'#0D6E6E',backgroundColor:'rgba(13,110,110,0.07)',borderWidth:2,fill:true,tension:0.3,pointRadius:4},
+          {label:'UK demand (GWh)',data:[10,30,60,80,100,130],borderColor:'#C0392B',backgroundColor:'rgba(192,57,43,0.05)',borderWidth:2,fill:true,tension:0.3,borderDash:[5,3],pointRadius:4},
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#8E97A6'}},x:{grid:{display:false},ticks:{font:{size:10},color:'#8E97A6'}}}}
+    });
+  }
+
+  // Revenue scenarios
+  const rc = document.getElementById('revenueChart');
+  if(rc){
+    new Chart(rc,{
+      type:'bar',
+      data:{
+        labels:['AESC P1','AESC P2','Agratas Ph1','UK 31GWh 5%','UK 31GWh 15%','EU 451GWh 5%'],
+        datasets:[
+          {label:'Low (£M)',data:[0.05,0.7,0.6,1.4,4.1,19.9],backgroundColor:'rgba(13,110,110,0.3)',borderWidth:0},
+          {label:'Base (£M)',data:[0.05,2.3,2.2,4.5,13.4,65],backgroundColor:'#0D6E6E',borderWidth:0},
+          {label:'High (£M)',data:[0.2,6.6,7.5,13,39,189],backgroundColor:'rgba(12,35,64,0.7)',borderWidth:0},
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#8E97A6',maxRotation:35}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#8E97A6',callback:v=>'£'+v+'M'}}}}
+    });
+  }
+
+  // EV adoption
+  const ec = document.getElementById('evChart');
+  if(ec){
+    new Chart(ec,{
+      type:'bar',
+      data:{
+        labels:['2020','2021','2022','2023','2024','2025'],
+        datasets:[{label:'US BEV sales (k units)',data:[260,489,802,1187,1266,1450],backgroundColor:'#0C2340',borderWidth:0}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#8E97A6'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#8E97A6',callback:v=>v+'k'}}}}
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════
+// MARKET CHARTS
+// ══════════════════════════════════════════════════
+let marketChartsInited = false;
+function initMarketCharts() {
+  if(marketChartsInited) return;
+  marketChartsInited = true;
+
+  // TAM growth — Frost & Sullivan + Arizton
+  new Chart(document.getElementById('tamChart'),{
+    type:'line',
+    data:{
+      labels:['2021','2022','2023','2024','2025','2026','2028','2030','2032'],
+      datasets:[
+        {label:'Total separator market ($B)',data:[3.1,4.2,5.2,6.4,8.09,9.8,14.2,20.0,32.54],borderColor:'#0D6E6E',backgroundColor:'rgba(13,110,110,0.08)',fill:true,tension:0.4,borderWidth:2.5,pointRadius:3},
+        {label:'Nonwoven segment ($B)',data:[0.8,1.1,1.3,1.5,1.7,2.0,2.7,4.0,null],borderColor:'#0C2340',borderDash:[5,3],backgroundColor:'transparent',tension:0.4,borderWidth:2,pointRadius:3},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#8E97A6',callback:v=>'$'+v+'B'}},x:{grid:{display:false},ticks:{font:{size:10},color:'#8E97A6'}}}}
+  });
+
+  // European gigafactory
+  new Chart(document.getElementById('gigaChart'),{
+    type:'bar',
+    data:{
+      labels:['ACC','LG-Wroclaw','CATL','Tesla-Berlin','PowerCo','Samsung-Göd','SVOLT','AESC P1+P2','Agratas Ph1'],
+      datasets:[{label:'Risk-adj capacity GWh',data:[122,115,114,100,40,40,24,17.6,15],backgroundColor:['#0D6E6E','#0D6E6E','#0D6E6E','#8E97A6','#8E97A6','#0D6E6E','#8E97A6','#0C2340','#0C2340'],borderWidth:0}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#8E97A6',maxRotation:40}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#8E97A6',callback:v=>v+' GWh'}}}}
+  });
+
+  // Li-ion installed capacity
+  new Chart(document.getElementById('liionChart'),{
+    type:'bar',
+    data:{
+      labels:['2020','2021','2022','2023','2024','2030F'],
+      datasets:[{label:'Global installed capacity (GWh)',data:[710,1026,1652,2555,3476,9314],backgroundColor:['#D5DAE2','#D5DAE2','#8E97A6','#4E5A6B','#0C2340','#0D6E6E'],borderWidth:0}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#8E97A6'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#8E97A6',callback:v=>v+' GWh'}}}}
+  });
+
+  // EU BEV recovery
+  new Chart(document.getElementById('bevChart'),{
+    type:'line',
+    data:{
+      labels:['Aug 2024','Sep 2024','Jan 2025','Q1 2025','H1 2025','FY 2025','Jan 2026','Q1 2026','Apr 2026'],
+      datasets:[{label:'EU BEV share %',data:[14.4,13.1,15.0,15.2,15.6,17.4,19.3,19.4,19.7],borderColor:'#0D6E6E',backgroundColor:'rgba(13,110,110,0.08)',fill:true,tension:0.4,borderWidth:2.5,pointRadius:4}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:12,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#8E97A6',callback:v=>v+'%'}},x:{grid:{display:false},ticks:{font:{size:9},color:'#8E97A6',maxRotation:35}}},
+    annotation:{annotations:[{type:'line',yMin:13.1,yMax:13.1,borderColor:'rgba(192,57,43,0.4)',borderDash:[4,3],label:{content:'Aug 2024 dip — German subsidy removal',enabled:true}}]}}
+  });
+}
+
+// ══════════════════════════════════════════════════
+// SOM CHART + CALCULATOR
+// ══════════════════════════════════════════════════
+let somChartObj = null;
+function initSOMChart() {
+  if(somChartObj) return;
+  somChartObj = new Chart(document.getElementById('somChart'),{
+    type:'bar',
+    data:{
+      labels:['AESC P2\n(base)','Agratas Ph1\n(base)','UK 31GWh\n5%★','UK 31GWh\n15%','UK 66GWh\n5%','UK 100GWh\n5%','EU 451GWh\n5%'],
+      datasets:[{label:'Base case (£M/yr)',data:[2.3,2.2,4.5,13.4,9.5,14.4,65],backgroundColor:['#D5DAE2','#D5DAE2','#0D6E6E','#0C2340','#8E97A6','#8E97A6','#D4891A'],borderWidth:0}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#8E97A6'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#8E97A6',callback:v=>'£'+v+'M'}}}}
+  });
+}
+
+function calcSOM() {
+  const ukGhw = +document.getElementById('c-uk-ghw').value;
+  const euGhw = +document.getElementById('c-eu-ghw').value;
+  const share = +document.getElementById('c-share').value / 100;
+  const intensity = +document.getElementById('c-intensity').value;
+  const asp = +document.getElementById('c-asp').value / 100;
+
+  document.getElementById('rv-uk-ghw').textContent = ukGhw+' GWh';
+  document.getElementById('rv-eu-ghw').textContent = euGhw+' GWh';
+  document.getElementById('rv-share').textContent = Math.round(share*100)+'%';
+  document.getElementById('rv-intensity').textContent = intensity+'M m²/GWh';
+  document.getElementById('rv-asp').textContent = '£'+asp.toFixed(2)+'/m²';
+
+  const ukRev = ukGhw * share * intensity * asp;
+  const euRev = euGhw * share * intensity * asp;
+
+  document.getElementById('calc-uk').textContent = '£'+ukRev.toFixed(1)+'M';
+  document.getElementById('calc-uk-d').textContent = ukGhw+'GWh · '+Math.round(share*100)+'% · £'+asp.toFixed(2);
+  document.getElementById('calc-eu').textContent = '£'+Math.round(euRev)+'M';
+  document.getElementById('calc-eu-d').textContent = euGhw+'GWh · '+Math.round(share*100)+'% · £'+asp.toFixed(2);
+}
+
+// ══════════════════════════════════════════════════
+// COPY URL
+// ══════════════════════════════════════════════════
+function copyUrl() {
+  const code = state.map(v=>v+1).join('');
+  const url = window.location.origin + window.location.pathname + '?levers=' + code;
+  navigator.clipboard?.writeText(url).catch(()=>{});
+  const btn = document.querySelector('.copy-btn');
+  const orig = btn.textContent;
+  btn.textContent = 'copied ✓';
+  setTimeout(()=>{ btn.textContent=orig; }, 2000);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+buildLevers();
+initScenarioCharts();
+recalc();
+</script>
+</body>
+</html>
